@@ -25,19 +25,4 @@ public enum VeterinarianSpecialty {
         return description;
     }
 
-    public static void showOptions(){
-        System.out.println("Available specialty: ");
-        for (int i = 0; i < values().length; i++) {
-            System.out.println((i + 1) + ", " + values()[i].getDescription());
-        }
-    }
-
-    public static VeterinarianSpecialty getForNumber(int number){
-        if(number < 1 || number > values().length){
-            throw new IllegalArgumentException(
-                "Number " + number + " out of valid range [1, " + values().length + "]"
-            );
-        }
-        return values()[number - 1];
-    }
 }

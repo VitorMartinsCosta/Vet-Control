@@ -1,12 +1,14 @@
 package domain.model;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Stream;
 
+import domain.enums.AnimalSpecies;
+import domain.enums.PetStatus;
 import domain.exceptions.ValidationException;
 
 public class Tutor {
@@ -21,9 +23,12 @@ public class Tutor {
     private final List <Pet> pets;
 
     public Tutor(String name, String cpf, String phone, String email, Address address) {
-        if(Stream.of(name, cpf, phone, email).anyMatch(v -> v == null || v.isBlank()) || address == null){
-            throw new ValidationException("Invalid Tutor: name, CPF, phone, email, and address are required and must not be null or blank.");
-        }
+        validateName(name);
+        validateCpf(cpf);
+        validatePhone(phone);
+        validateEmail(email);
+        validateAddress(address);
+
         this.id = UUID.randomUUID().toString();
         this.name = name.trim();
         this.cpf = cpf.trim();
@@ -76,6 +81,12 @@ public class Tutor {
         return Collections.unmodifiableList(pets);
     }
 
+    public Pet createPet(String name, AnimalSpecies species, String breed, LocalDate birthDate, double weight){
+        Pet pet = new Pet(name, species, breed, birthDate, weight);
+        addPet(pet);
+        return pet;
+    }
+
     public void addPet(Pet pet){
         if(pet == null){
             throw new ValidationException("Cannot add pet: pet must not be null.");
@@ -83,18 +94,24 @@ public class Tutor {
             throw new ValidationException("Cannot add pet: this pet is already associated with the tutor.");
         } else if(pet.getTutor() != null){
             throw new ValidationException("Cannot add pet: this pet is already associated with other tutor.");
+        } else if (pet.getPetStatus() != PetStatus.ACTIVE){
+            throw new ValidationException("Cannot add pet: pet is not ACTIVE (current status: " + 
+            pet.getPetStatus() + ")");
         }
         pets.add(pet);
         pet.setTutor(this);
     }
 
-    public void removePet(Pet pet){ //Devo verificar depois este código, pois um pet não pode ficar orfão.
+    public void detachPet(Pet pet){ //Devo verificar depois este código, pois um pet não pode ficar orfão.
         if(pet == null){
             throw new ValidationException("Cannot remove pet: pet must not be null.");
         } else if(!pets.contains(pet)){
             throw new ValidationException("Cannot remove pet: this pet is not associated with the tutor.");
+        } else if(pet.getPetStatus() != PetStatus.DECEASED && pet.getPetStatus() != PetStatus.TRANSFERRED_OUT){
+            throw new ValidationException("Cannot remove pet: Pet Status must not be Active.");
         }
         pets.remove(pet);
+        pet.setTutor(null);
     }      
 
     @Override
@@ -103,16 +120,31 @@ public class Tutor {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null) return false;
-        if (getClass() != o.getClass()) return false;
+    public boolean equals(Object obj) {
+        if (this == obj)
+        return true;
+        if (obj == null) 
+        return false;
+        if (getClass() != obj.getClass()) 
+        return false;
 
-        Tutor other = (Tutor) o;
+        Tutor other = (Tutor) obj;
 
         return Objects.equals(this.id, other.id);
     }  
     
+    private void validateName(String name){
+        if(name == null || name.isBlank()){
+            throw new ValidationException("Invalid tutor name: name must not be null or blank.");
+        }
+    }
+
+    private void validateCpf(String cpf){
+        if(cpf == null || cpf.isBlank()){
+            throw new ValidationException("Invalid CPF: CPF must not be null or blank.");
+        }
+    }
+
     private void validateAddress(Address address){
         if(address == null){
             throw new ValidationException("Invalid address assignment: address must not be null.");
@@ -130,5 +162,7 @@ public class Tutor {
             throw new ValidationException("Update contact information failed: email must not be null or blank.");
         }
     }
+
+
 
 }

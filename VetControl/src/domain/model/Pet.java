@@ -1,32 +1,40 @@
 package domain.model;
 
 import java.time.LocalDate;
+import java.util.Objects;
+import java.util.UUID;
 
 import domain.enums.AnimalSpecies;
+import domain.enums.PetStatus;
+import domain.exceptions.ValidationException;
 
 public class Pet {
-    private Integer id;
+    private final String id;
     private String name;
-    private AnimalSpecies specie;
+    private AnimalSpecies species;
     private String breed;
     private LocalDate birthDate;
-    private Double weight;
+    private double weight;
     private Tutor tutor;
+    private PetStatus petStatus;
 
-    public Pet() {
-    }
-
-    public Pet(Integer id, String name, AnimalSpecies specie, String breed, LocalDate birthDate, Double weight, Tutor tutor) {
-        this.id = id;
-        this.name = name;
-        this.specie = specie;
-        this.breed = breed;
+    Pet(String name, AnimalSpecies species, String breed, LocalDate birthDate, double weight) {
+        validateAnimalSpecie(species);
+        validateBreed(breed);
+        validateName(name);
+        validateWeight(weight);
+        validateBirthDate(birthDate);
+        
+        this.id = UUID.randomUUID().toString() ;
+        this.name = name.trim();
+        this.species = species;
+        this.breed = breed.trim();
         this.birthDate = birthDate;
         this.weight = weight;
-        this.tutor = tutor;
+        this.petStatus = PetStatus.ACTIVE;
     }
 
-    public Integer getId() {
+    public String getId() {
         return id;
     }
 
@@ -34,39 +42,24 @@ public class Pet {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public AnimalSpecies getSpecie() {
-        return specie;
-    }
-
-    public void setSpecie(AnimalSpecies specie) {
-        this.specie = specie;
+    public AnimalSpecies getSpecies() {
+        return species;
     }
 
     public String getBreed() {
         return breed;
     }
 
-    public void setBreed(String breed) {
-        this.breed = breed;
-    }
-
     public LocalDate getBirthDate() {
         return birthDate;
     }
 
-    public void setBirthDate(LocalDate birthDate) {
-        this.birthDate = birthDate;
-    }
-
-    public Double getWeight() {
+    public double getWeight() {
         return weight;
     }
 
-    public void setWeight(Double weight) {
+    public void updateWeight(double weight) {
+        validateWeight(weight);
         this.weight = weight;
     }
 
@@ -74,8 +67,86 @@ public class Pet {
         return tutor;
     }
 
-    public void setTutor(Tutor tutor) {
+    void setTutor(Tutor tutor) {
         this.tutor = tutor;
     }
     
+    public PetStatus getPetStatus() {
+        return petStatus;
+    }
+
+    public void markAsDeceased(){
+        if(petStatus != PetStatus.ACTIVE){
+            throw new ValidationException("Invalid pet status: status must be Active.");
+        }
+        this.petStatus = PetStatus.DECEASED;
+        tutor.detachPet(this);
+    }
+
+    public void transferOut(){
+        if(petStatus != PetStatus.ACTIVE){
+            throw new ValidationException("Invalid pet status: status must be Active.");
+        }
+        this.petStatus = PetStatus.TRANSFERRED_OUT;
+        tutor.detachPet(this);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+
+        Pet other = (Pet) obj;
+
+        return Objects.equals(this.id, other.id);
+    }
+
+    private void validateName(String name){
+        if(name == null || name.isBlank()){
+            throw new ValidationException("Invalid pet name: name must not be null or blank.");
+        }
+    }
+
+    private void validateAnimalSpecie(AnimalSpecies animalSpecies){
+        if(animalSpecies == null){
+            throw new ValidationException("Invalid animal species: species must not be null.");
+        }
+    }
+
+    private void validateBreed(String breed){
+        if(breed == null || breed.isBlank()){
+            throw new ValidationException("Invalid breed: breed must not be null or blank.");
+        }
+    }
+
+    private void validateBirthDate(LocalDate birthDate){
+        if(birthDate == null || birthDate.isAfter(LocalDate.now())){
+            throw new ValidationException("Invalid birth date: birth date must not be null or in the future.");
+        }
+    }
+    
+    private void validateWeight(double weight){
+        if(weight <= 0.00){
+            throw new ValidationException("Invalid weight: weight must be greater than zero.");
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "Pet - " + name + "\n" +
+            "Specie: " + species + "\n" +
+            "Breed: " + breed + "\n" +
+            "BirthDate: " + birthDate + "\n" +
+            "Status: " + petStatus + "\n" +
+            "Tutor: " + (tutor != null ? tutor.getName() : "none") + "\n";
+    }
 }
