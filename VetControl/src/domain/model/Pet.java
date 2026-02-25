@@ -80,7 +80,6 @@ public class Pet {
             throw new ValidationException("Invalid pet status: status must be Active.");
         }
         this.petStatus = PetStatus.DECEASED;
-        tutor.detachPet(this);
     }
 
     public void transferOut(){
@@ -88,7 +87,6 @@ public class Pet {
             throw new ValidationException("Invalid pet status: status must be Active.");
         }
         this.petStatus = PetStatus.TRANSFERRED_OUT;
-        tutor.detachPet(this);
     }
 
     @Override

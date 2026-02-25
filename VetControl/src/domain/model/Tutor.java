@@ -100,19 +100,7 @@ public class Tutor {
         }
         pets.add(pet);
         pet.setTutor(this);
-    }
-
-    public void detachPet(Pet pet){ //Devo verificar depois este código, pois um pet não pode ficar orfão.
-        if(pet == null){
-            throw new ValidationException("Cannot remove pet: pet must not be null.");
-        } else if(!pets.contains(pet)){
-            throw new ValidationException("Cannot remove pet: this pet is not associated with the tutor.");
-        } else if(pet.getPetStatus() != PetStatus.DECEASED && pet.getPetStatus() != PetStatus.TRANSFERRED_OUT){
-            throw new ValidationException("Cannot remove pet: Pet Status must not be Active.");
-        }
-        pets.remove(pet);
-        pet.setTutor(null);
-    }      
+    }     
 
     @Override
     public int hashCode() {
