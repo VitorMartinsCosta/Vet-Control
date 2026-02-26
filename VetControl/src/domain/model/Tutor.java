@@ -5,10 +5,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 import domain.enums.AnimalSpecies;
 import domain.enums.PetStatus;
+import domain.enums.TutorStatus;
 import domain.exceptions.ValidationException;
 
 public class Tutor {
@@ -17,7 +19,7 @@ public class Tutor {
     private String cpf;
     private String phone;
     private String email;
-
+    private TutorStatus tutorStatus;
     private Address address;
 
     private final List <Pet> pets;
@@ -29,6 +31,7 @@ public class Tutor {
         validateEmail(email);
         validateAddress(address);
 
+        this.tutorStatus = TutorStatus.ACTIVE;
         this.id = UUID.randomUUID().toString();
         this.name = name.trim();
         this.cpf = cpf.trim();
@@ -77,6 +80,28 @@ public class Tutor {
         this.email = email.trim();
     }
 
+    public TutorStatus getTutorStatus(){
+        return tutorStatus;
+    }
+
+    public boolean isActive(){
+        return tutorStatus == TutorStatus.ACTIVE ? true:false;
+    }
+
+    public void activate(){
+        if(tutorStatus == TutorStatus.ACTIVE){
+            throw new ValidationException("Invalid Tutor Status: Tutor is already ACTIVE.");
+        }
+        tutorStatus = TutorStatus.ACTIVE;
+    }
+
+    public void deactivate(){
+        if(tutorStatus == TutorStatus.INACTIVE){
+            throw new ValidationException("Invalid Tutor Status: Tutor is already INACTIVE.");
+        }
+        tutorStatus = TutorStatus.INACTIVE;
+    }
+
     public List <Pet> getPets() {
         return Collections.unmodifiableList(pets);
     }
@@ -92,8 +117,6 @@ public class Tutor {
             throw new ValidationException("Cannot add pet: pet must not be null.");
         } else if(pets.contains(pet)){
             throw new ValidationException("Cannot add pet: this pet is already associated with the tutor.");
-        } else if(pet.getTutor() != null){
-            throw new ValidationException("Cannot add pet: this pet is already associated with other tutor.");
         } else if (pet.getPetStatus() != PetStatus.ACTIVE){
             throw new ValidationException("Cannot add pet: pet is not ACTIVE (current status: " + 
             pet.getPetStatus() + ")");
@@ -101,6 +124,21 @@ public class Tutor {
         pets.add(pet);
         pet.setTutor(this);
     }     
+
+    public void removePet(Pet pet){
+        if(pet == null){
+            throw new ValidationException("Cannot remove pet: pet must not be null.");
+        }else if(!pets.contains(pet)){
+            throw new ValidationException("Cannot remove pet: this pet is not associated with the tutor.");
+        }
+        pets.remove(pet);
+    }
+
+    public Optional <Pet> findPetById(String id){
+        return pets.stream()
+                .filter(p -> p.getId().equals(id))
+                .findFirst();
+    }
 
     @Override
     public int hashCode() {

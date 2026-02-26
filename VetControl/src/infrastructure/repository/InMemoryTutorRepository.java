@@ -27,11 +27,6 @@ public class InMemoryTutorRepository implements TutorRepository{
     }
 
     @Override
-    public void deleteById(String id) {
-        tutorRepo.remove(id);
-    }
-
-    @Override
     public boolean existsById(String id) {
         return tutorRepo.containsKey(id);
     }
@@ -46,6 +41,6 @@ public class InMemoryTutorRepository implements TutorRepository{
         return tutorRepo.values()
                         .stream()
                         .filter(t -> t.getCpf().equals(cpf))
-                        .findAny();
+                        .findFirst();
     }
 }

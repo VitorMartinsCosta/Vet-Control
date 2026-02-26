@@ -8,7 +8,7 @@ public enum PetStatus {
     private final String description;
 
     private PetStatus(String description) {
-    this.description = description;
+        this.description = description;
     }
 
     public String getDesciption(){

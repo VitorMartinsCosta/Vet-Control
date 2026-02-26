@@ -76,17 +76,20 @@ public class Pet {
     }
 
     public void markAsDeceased(){
-        if(petStatus != PetStatus.ACTIVE){
-            throw new ValidationException("Invalid pet status: status must be Active.");
-        }
+        validateStatus(petStatus);
         this.petStatus = PetStatus.DECEASED;
     }
 
     public void transferOut(){
-        if(petStatus != PetStatus.ACTIVE){
-            throw new ValidationException("Invalid pet status: status must be Active.");
-        }
+        validateStatus(petStatus);
         this.petStatus = PetStatus.TRANSFERRED_OUT;
+    }
+
+    public void reactivate(){
+        if(petStatus == PetStatus.ACTIVE){
+            throw new ValidationException("Invalid Pet Status: Pet is already ACTIVE.");
+        }
+        this.petStatus = PetStatus.ACTIVE;
     }
 
     @Override
@@ -106,6 +109,12 @@ public class Pet {
         Pet other = (Pet) obj;
 
         return Objects.equals(this.id, other.id);
+    }
+
+    private void validateStatus(PetStatus petStatus){
+        if(petStatus != PetStatus.ACTIVE){
+            throw new ValidationException("Invalid pet status: status must be Active.");
+        }
     }
 
     private void validateName(String name){

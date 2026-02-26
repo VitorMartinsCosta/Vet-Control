@@ -11,7 +11,6 @@ public interface TutorRepository {
     Optional<Tutor> findById(String id);
     Optional<Tutor> findByCpf(String cpf);
     List<Tutor> findAll();
-    void deleteById(String id);
     boolean existsById(String id);
 
 }
