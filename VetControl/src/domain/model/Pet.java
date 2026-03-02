@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import domain.enums.AnimalSpecies;
 import domain.enums.PetStatus;
+import domain.exceptions.BusinessRuleException;
 import domain.exceptions.ValidationException;
 
 public class Pet {
@@ -59,6 +60,7 @@ public class Pet {
     }
 
     public void updateWeight(double weight) {
+        validateStatus();
         validateWeight(weight);
         this.weight = weight;
     }
@@ -76,20 +78,10 @@ public class Pet {
     }
 
     public void markAsDeceased(){
-        validateStatus(petStatus);
-        this.petStatus = PetStatus.DECEASED;
-    }
-
-    public void transferOut(){
-        validateStatus(petStatus);
-        this.petStatus = PetStatus.TRANSFERRED_OUT;
-    }
-
-    public void reactivate(){
-        if(petStatus == PetStatus.ACTIVE){
-            throw new ValidationException("Invalid Pet Status: Pet is already ACTIVE.");
+        if(petStatus == PetStatus.DECEASED){
+            throw new BusinessRuleException("Invalid Operation: Pet is already DECEASED");
         }
-        this.petStatus = PetStatus.ACTIVE;
+        this.petStatus = PetStatus.DECEASED;
     }
 
     @Override
@@ -111,8 +103,8 @@ public class Pet {
         return Objects.equals(this.id, other.id);
     }
 
-    private void validateStatus(PetStatus petStatus){
-        if(petStatus != PetStatus.ACTIVE){
+    private void validateStatus(){
+        if(this.petStatus != PetStatus.ACTIVE){
             throw new ValidationException("Invalid pet status: status must be Active.");
         }
     }

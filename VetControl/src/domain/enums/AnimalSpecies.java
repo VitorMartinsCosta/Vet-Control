@@ -2,6 +2,7 @@ package domain.enums;
 
 public enum AnimalSpecies {
     CAT ("Cat"),
+    DOG("Dog"),
     BIRD ("Bird"),
     RABBIT ("Rabbit"),
     RODENT ("Rodent"),

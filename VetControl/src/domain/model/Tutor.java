@@ -11,6 +11,7 @@ import java.util.UUID;
 import domain.enums.AnimalSpecies;
 import domain.enums.PetStatus;
 import domain.enums.TutorStatus;
+import domain.exceptions.BusinessRuleException;
 import domain.exceptions.ValidationException;
 
 public class Tutor {
@@ -58,6 +59,7 @@ public class Tutor {
     }
 
     public void updateAddress(Address address) {
+        validateTutorStatus();
         validateAddress(address);
         this.address = address;
     }
@@ -67,6 +69,7 @@ public class Tutor {
     }
 
     public void updatePhone(String phone) {
+        validateTutorStatus();
         validatePhone(phone);
         this.phone = phone.trim();
     }
@@ -76,6 +79,7 @@ public class Tutor {
     }
 
     public void updateEmail(String email) {
+        validateTutorStatus();
         validateEmail(email);
         this.email = email.trim();
     }
@@ -84,20 +88,16 @@ public class Tutor {
         return tutorStatus;
     }
 
-    public boolean isActive(){
-        return tutorStatus == TutorStatus.ACTIVE ? true:false;
-    }
-
     public void activate(){
         if(tutorStatus == TutorStatus.ACTIVE){
-            throw new ValidationException("Invalid Tutor Status: Tutor is already ACTIVE.");
+            throw new BusinessRuleException("Invalid Tutor Status: Tutor is already ACTIVE.");
         }
         tutorStatus = TutorStatus.ACTIVE;
     }
 
     public void deactivate(){
         if(tutorStatus == TutorStatus.INACTIVE){
-            throw new ValidationException("Invalid Tutor Status: Tutor is already INACTIVE.");
+            throw new BusinessRuleException("Invalid Tutor Status: Tutor is already INACTIVE.");
         }
         tutorStatus = TutorStatus.INACTIVE;
     }
@@ -107,6 +107,7 @@ public class Tutor {
     }
 
     public Pet createPet(String name, AnimalSpecies species, String breed, LocalDate birthDate, double weight){
+        validateTutorStatus();
         Pet pet = new Pet(name, species, breed, birthDate, weight);
         addPet(pet);
         return pet;
@@ -115,14 +116,19 @@ public class Tutor {
     public void addPet(Pet pet){
         if(pet == null){
             throw new ValidationException("Cannot add pet: pet must not be null.");
-        } else if(pets.contains(pet)){
+        } 
+        
+        validateTutorStatus();
+
+        if(pets.contains(pet)){
             throw new ValidationException("Cannot add pet: this pet is already associated with the tutor.");
-        } else if (pet.getPetStatus() != PetStatus.ACTIVE){
+        }
+        if (pet.getPetStatus() != PetStatus.ACTIVE){
             throw new ValidationException("Cannot add pet: pet is not ACTIVE (current status: " + 
             pet.getPetStatus() + ")");
-        }
-        pets.add(pet);
+        } 
         pet.setTutor(this);
+        pets.add(pet);
     }     
 
     public void removePet(Pet pet){
@@ -132,6 +138,7 @@ public class Tutor {
             throw new ValidationException("Cannot remove pet: this pet is not associated with the tutor.");
         }
         pets.remove(pet);
+        pet.setTutor(null);
     }
 
     public Optional <Pet> findPetById(String id){
@@ -159,6 +166,7 @@ public class Tutor {
         return Objects.equals(this.id, other.id);
     }  
     
+    //Métodos para validação
     private void validateName(String name){
         if(name == null || name.isBlank()){
             throw new ValidationException("Invalid tutor name: name must not be null or blank.");
@@ -189,6 +197,9 @@ public class Tutor {
         }
     }
 
-
-
+    private void validateTutorStatus(){
+        if(this.tutorStatus != TutorStatus.ACTIVE){
+            throw new BusinessRuleException("Invalid Tutor Status: Tutor must be ACTIVE.");
+        }
+    }
 }

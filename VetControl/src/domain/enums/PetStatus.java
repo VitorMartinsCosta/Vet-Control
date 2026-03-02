@@ -2,8 +2,7 @@ package domain.enums;
 
 public enum PetStatus {
     ACTIVE("Active"),
-    DECEASED("Deceased"),
-    TRANSFERRED_OUT("Transferred out");
+    DECEASED("Deceased");
 
     private final String description;
 
@@ -11,7 +10,7 @@ public enum PetStatus {
         this.description = description;
     }
 
-    public String getDesciption(){
+    public String getDescription(){
         return description;
     }
 }
