@@ -120,4 +120,4 @@ Architecture ready for scaling.
 
 ## 👨‍💻 Author
 
-Developed as part of backend architecture and domain modeling practice.
+Vitor Martins Costa
