@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Optional;
 
 import domain.enums.AnimalSpecies;
-import domain.enums.TutorStatus;
 import domain.exceptions.BusinessRuleException;
 import domain.exceptions.EntityNotFoundException;
 import domain.exceptions.ValidationException;
@@ -39,29 +38,59 @@ public class TutorService {
 
     public Tutor getTutorById(String id){
 
-        validateId(id, "Tutor");
+        if (id == null || id.isBlank()){
+                throw new ValidationException("Invalid ID: ID must not be null or blank.");
+        }
 
         return tutorRepository.findById(id).orElseThrow(()-> new EntityNotFoundException("Tutor not found: no record exists for the provided ID."));
     }
 
-    public Tutor activateTutor(String id){
+    public Tutor getTutorByCpf(String cpf){
+        validateCPF(cpf);
+        return tutorRepository.findByCpf(cpf).orElseThrow(() -> new EntityNotFoundException("Tutor not found: no record exists for the provided CPF."));
+    }
 
-        validateId(id, "Tutor");
+    public void updateTutorPhone(String tutorCpf, String phone){
+        Tutor tutor = getTutorByCpf(tutorCpf);
+        tutor.updatePhone(phone);
+        tutorRepository.save(tutor);
+    }
+    
+    public void updateTutorEmail(String tutorCpf, String email){
+        Tutor tutor = getTutorByCpf(tutorCpf);
+        tutor.updateEmail(email);
+        tutorRepository.save(tutor);
+    }
+    
+    public void updateTutorAddress(String tutorCpf, Address address){
+        Tutor tutor = getTutorByCpf(tutorCpf);
+        tutor.updateAddress(address);
+        tutorRepository.save(tutor);
+    }
 
-        Tutor tutor = getTutorById(id);
+    public Tutor activateTutor(String cpf){
+
+        validateCPF(cpf);
+
+        Tutor tutor = getTutorByCpf(cpf);
         tutor.activate();
         tutorRepository.save(tutor);
         return tutor;
     }
 
-    public Tutor deactivateTutor(String id){
+    public Tutor deactivateTutor(String cpf){
 
-        validateId(id, "Tutor");
+        validateCPF(cpf);
 
-        Tutor tutor = getTutorById(id);
+        Tutor tutor = getTutorByCpf(cpf);
         tutor.deactivate();
         tutorRepository.save(tutor);
         return tutor;
+    }
+
+    public List<Pet> getPetsByTutorCpf(String cpf){
+        Tutor tutor = getTutorByCpf(cpf);
+        return tutor.getPets();
     }
 
     public Pet getPetById(String petId) {
@@ -71,18 +100,14 @@ public class TutorService {
             return pet.get();
         }
     }
-    throw new EntityNotFoundException("Pet not found.");
+    throw new EntityNotFoundException("Pet not found: no record exists for the provided ID.");
     }
 
-    public Pet registerPet(String name, AnimalSpecies species, String breed, LocalDate birthDate, double weight, String idTutor){
+    public Pet registerPet(String name, AnimalSpecies species, String breed, LocalDate birthDate, double weight, String cpf){
 
-        validateId(idTutor, "Tutor");
+        validateCPF(cpf);
 
-        Tutor tutor = getTutorById(idTutor);
-
-        if(tutor.getTutorStatus() != TutorStatus.ACTIVE){
-            throw new BusinessRuleException("Invalid Tutor Status: Tutor must be ACTIVE.");
-        }
+        Tutor tutor = getTutorByCpf(cpf);
 
         Pet pet = tutor.createPet(name, species, breed, birthDate, weight);
 
@@ -91,15 +116,17 @@ public class TutorService {
     }
 
     //Método depende de garantia transacional.
-    public void transferPet(String idTutor1, String idTutor2, String idPet){
+    public void transferPet(String cpf1, String cpf2, String idPet){
 
-        validateId(idPet, "Pet");
+        if (idPet == null || idPet.isBlank()){
+            throw new ValidationException("Invalid Pet ID: Pet ID must not be null or blank.");
+        }
 
-        Tutor tutor1 = getTutorById(idTutor1);
-        Tutor tutor2 = getTutorById(idTutor2);
+        Tutor tutor1 = getTutorByCpf(cpf1);
+        Tutor tutor2 = getTutorByCpf(cpf2);
 
         if (tutor1.equals(tutor2)){
-            throw new BusinessRuleException("Invalid Tutor IDs: Source and destination tutor IDs must be different for pet transfer.");
+            throw new BusinessRuleException("Invalid Tutor CPFs: Source and destination tutor CPFs must be different for pet transfer.");
         }
         Pet pet = tutor1.findPetById(idPet).orElseThrow(()-> new EntityNotFoundException("Pet not found: no record exists for the provided ID."));
 
@@ -110,12 +137,20 @@ public class TutorService {
         tutorRepository.save(tutor2);
     }
 
-    //Métodos para validação.
-    private void validateId(String id, String type){
-        if (id == null || id.isBlank()){
-            throw new ValidationException(
-                "Invalid " + type + " ID: " + type + " ID must not be null or blank."
-            );
+    public void markPetAsDeceased(String tutorCpf, String petId){
+        
+        Tutor tutor = getTutorByCpf(tutorCpf);
+        Pet pet = tutor.findPetById(petId)
+                .orElseThrow(() -> new EntityNotFoundException("Pet not found: no record exists for the provided ID."));
+        pet.markAsDeceased();
+        tutorRepository.save(tutor);
+    }
+
+    //Métodos auxiliares
+
+    private void validateCPF(String cpf){
+        if (cpf == null || cpf.isBlank()){
+                throw new ValidationException("Invalid CPF: CPF must not be null or blank.");
         }
     }
 }
